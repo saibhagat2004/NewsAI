@@ -7,6 +7,7 @@ export function NewsList() {
 
   // Selected categories — you can update this from user preferences later
   const selectedCategories = [ 'business', 'world','sports','entertainment', 'tech', 'health', 'headlines'];
+  const selectedTone = 'hinglish'; // You can dynamically change this later (e.g., from user preferences)
 
   useEffect(() => {
     const fetchRSSFeed = async () => {
@@ -16,7 +17,7 @@ export function NewsList() {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ categories: selectedCategories }),
+          body: JSON.stringify({ categories: selectedCategories, tone: selectedTone }),
         });
 
         const data = await response.json();

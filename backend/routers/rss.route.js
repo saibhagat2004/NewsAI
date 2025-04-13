@@ -11,8 +11,6 @@ router.post("/", fetchAndMergeFeeds);
 
 router.get("/extractAll",  extractAllNewsAsFeedMap);
 
-
-
 // router.get("/allFeed",  fetchFeedsForSummarization );
 
 router.get("/aisummary",   buildSummarization );

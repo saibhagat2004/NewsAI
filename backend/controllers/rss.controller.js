@@ -115,7 +115,7 @@ function shuffleArray(arr) {
 }
 
 // Weighted merge utility
-function weightedMerge(feedsMap, selectedCategories, totalItems = 50) {
+function weightedMerge(feedsMap, selectedCategories, totalItems = 25) {
   const merged = [];
 
   const selectedWeight = 0.85; // 85% from selected
@@ -172,11 +172,15 @@ function weightedMerge(feedsMap, selectedCategories, totalItems = 50) {
 
 export async function fetchAndMergeFeeds(req, res) {
   const selectedCategories = req.body.categories; // ['sports', 'business', etc.]
+  const tone = req.body.tone || "original";       // e.g., 'hindi', 'friendly'
 
   try {
-    const allFeeds = await extractAllNewsAsFeedMap();
+    const allFeeds = await extractAllNewsAsFeedMap(tone);
 
-    // Filter to selected categories only
+    // ❌ Exclude 'headlines' from allFeeds
+    delete allFeeds["headlines"];
+
+    // ✅ Filter to selected categories only
     const filteredFeedsMap = {};
     for (const category of selectedCategories) {
       if (allFeeds[category]) {
@@ -184,7 +188,7 @@ export async function fetchAndMergeFeeds(req, res) {
       }
     }
 
-    // Weighted merge
+    // 🧠 Weighted merge
     const mergedFeed = weightedMerge(filteredFeedsMap, selectedCategories, 50);
 
     res.status(200).json(mergedFeed);
@@ -308,7 +312,7 @@ You are a summarization assistant for a news app. Given a list of news items (wi
 
 - "original": unchanged
 - "friendly": light and casual
-- "hinglish": a Hindi-English blend
+- "hinglish": "In english-hindi  blend . English Original: India’s cricket team won the series after a tough final match. Expected Hinglish Output: India’s cricket team ne finally series jeet li  — that last match was too intense!"
 - "hindi": in Hindi
 
 ⚠️ IMPORTANT: Always return only valid JSON. No explanation or extra text.
@@ -322,15 +326,15 @@ Format:
     "id": "abc123",
     "title": {
       "original": "...",
+       "hindi": "...",
       "friendly": "...",
-      "hinglish": "...",
-      "hindi": "..."
+      "hinglish": "..."
     },
     "description": {
       "original": "...",
-      "friendly": "...",
-      "hinglish": "...",
       "hindi": "..."
+      "friendly": "...",
+      "hinglish": "..."
     }
   }
 ]
@@ -429,21 +433,20 @@ if (!existingDoc) {
   }
 }
 
-
-export async function extractAllNewsAsFeedMap(req, res) {
+export async function extractAllNewsAsFeedMap(tone = "original") {
   try {
     const doc = await FinalFeedMap.findOne({}).lean();
     if (!doc || !doc.feeds) {
       console.warn("No feeds document found in DB");
-      return res.status(404).json({ error: "No feeds document found in DB" });
+      return {};
     }
-  //  const tone="hindi";
+
     const feedMap = {};
     for (const [category, items] of Object.entries(doc.feeds)) {
       feedMap[category] = items.map((item) => ({
         id: item.id,
-        title: item.title.hindi,
-        description: item.description.hindi,
+        title: item.title[tone] || item.title.original,
+        description: item.description[tone] || item.description.original,
         link: item.link,
         pubDate: item.pubDate,
         image: item.image,
@@ -451,14 +454,12 @@ export async function extractAllNewsAsFeedMap(req, res) {
       }));
     }
 
-    // console.log("feedMap", feedMap);
     return feedMap;
   } catch (err) {
     console.error("❌ Failed to extract feeds:", err.message);
-    res.status(500).json({ error: "Failed to extract feeds" });
+    return {};
   }
 }
-
 
 
 
@@ -466,16 +467,16 @@ export async function extractAllNewsAsFeedMap(req, res) {
 import cron from "node-cron";
 
 // Schedule the job to run at the top of every hour
-// cron.schedule("0 * * * *", async () => {
-//   console.log("🕐 Running hourly buildSummarization job...");
+cron.schedule("0 * * * *", async () => {
+  console.log("🕐 Running hourly buildSummarization job...");
 
-//   try {
-//     await buildSummarization();
-//     console.log("✅ Summarization complete!");
-//   } catch (error) {
-//     console.error("❌ Summarization job failed:", error.message);
-//   }
-// });
+  try {
+    await buildSummarization();
+    console.log("✅ Summarization complete!");
+  } catch (error) {
+    console.error("❌ Summarization job failed:", error.message);
+  }
+});
 
 
 // cron.schedule("* * * * *", async () => {
