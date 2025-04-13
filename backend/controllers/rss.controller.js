@@ -300,7 +300,7 @@ export async function buildSummarization(req, res) {
     console.log("📦 Total batches to send:", aiChunks.length);
 
     const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-8b" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const allSummarizedItems = [];
     let batchIndex = 1;
@@ -311,12 +311,13 @@ export async function buildSummarization(req, res) {
 You are a summarization assistant for a news app. Given a list of news items (with id, title, and description), return a JSON array where each item contains the same id, and the title and description in 4 tones:
 
 - "original": unchanged
+- "hindi": in Hindi 
 - "friendly": light and casual
-- "hinglish": "In english-hindi  blend . English Original: India’s cricket team won the series after a tough final match. Expected Hinglish Output: India’s cricket team ne finally series jeet li  — that last match was too intense!"
-- "hindi": in Hindi
+- "hinglish": "Use casual Hinglish — a natural mix of Hindi and English as spoken in daily Indian conversations. Write mostly in English but blend in simple Hindi words or phrases where it feels natural. DO NOT translate entire sentences into Hindi. Example: English: 'India’s cricket team won the series after a tough final match.' → Hinglish: 'India’s cricket team ne finally series jeet li — that last match was too intense!'"
 
+Give a description of around 60 words for each item.
 ⚠️ IMPORTANT: Always return only valid JSON. No explanation or extra text.
-
+    if you don't get description, then form short one by refering the title.
 Here is the input:
 ${JSON.stringify(chunk, null, 2)}
 
@@ -328,13 +329,13 @@ Format:
       "original": "...",
        "hindi": "...",
       "friendly": "...",
-      "hinglish": "..."
+      "hinglish": "..." 
     },
     "description": {
       "original": "...",
       "hindi": "..."
       "friendly": "...",
-      "hinglish": "..."
+      "hinglish": "..."  
     }
   }
 ]
