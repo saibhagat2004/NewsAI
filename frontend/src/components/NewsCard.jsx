@@ -1,33 +1,3 @@
-// import React from 'react';
-
-// export function NewsCard({ news }) {
-//   return (
-//     <div className="bg-white shadow-md rounded-lg overflow-hidden">
-//       {/* Display image if available */}
-//       {news.image && (
-//         <img
-//           src={news.image}
-//           alt={news.title}
-//           className="w-full h-48 object-cover"
-//         />
-//       )}
-//       <div className="p-4">
-//         <a
-//           href={news.link}
-//           target="_blank"
-//           rel="noopener noreferrer"
-//           className="text-blue-600 hover:underline"
-//         >
-//           <h3 className="text-lg font-semibold mb-2">{news.title}</h3>
-//         </a>
-//         <p className="text-gray-600 mb-4">{news.description}</p>
-        
-//         <small className="text-gray-500">{news.pubDate}</small>
-//       </div>
-//     </div>
-//   );
-// }
-
 import React from 'react';
 
 export function NewsCard({ news }) {
