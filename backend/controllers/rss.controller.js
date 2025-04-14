@@ -3,7 +3,9 @@ import crypto from "crypto";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import FinalFeedMap from "../models/newArtial.model.js";
 import { subHours } from 'date-fns';
-import { CgArrowTopRightR } from "react-icons/cg";
+// cron.js
+import cron from "node-cron";
+
 
 const parser = new Parser({
   customFields: {
@@ -14,8 +16,10 @@ const parser = new Parser({
 });
 
 const rssFeeds = {
-  business: "https://www.cnbctv18.com/commonfeeds/v1/cne/rss/business.xml",
+  markets: "https://www.thehindubusinessline.com/markets/feeder/default.rss",
+  economy: "https://www.thehindubusinessline.com/economy/feeder/default.rss",
   sports: "https://timesofindia.indiatimes.com/rssfeeds/4719148.cms",
+  politics: "https://www.news18.com/commonfeeds/v1/eng/rss/politics.xml",
   entertainment: "https://timesofindia.indiatimes.com/rssfeeds/1081479906.cms",
   world: "https://rss.nytimes.com/services/xml/rss/nyt/World.xml",
   headlines: "https://timesofindia.indiatimes.com/rssfeedstopstories.cms",
@@ -26,7 +30,7 @@ const rssFeeds = {
 // Controller to fetch headlines
 export async function getHeadlines(req, res) {
   try {
-    const feed = await parser.parseURL(rssFeeds.headlines);
+    const feed = await parser.parseURL(rssFeeds.politics);
 
     const feedData = feed.items.map((item) => {
       let image = null;
@@ -180,16 +184,10 @@ export async function fetchAndMergeFeeds(req, res) {
     // ❌ Exclude 'headlines' from allFeeds
     delete allFeeds["headlines"];
 
-    // ✅ Filter to selected categories only
-    const filteredFeedsMap = {};
-    for (const category of selectedCategories) {
-      if (allFeeds[category]) {
-        filteredFeedsMap[category] = allFeeds[category];
-      }
-    }
+   
 
     // 🧠 Weighted merge
-    const mergedFeed = weightedMerge(filteredFeedsMap, selectedCategories, 50);
+    const mergedFeed = weightedMerge(allFeeds, selectedCategories, 50);
 
     res.status(200).json(mergedFeed);
   } catch (err) {
@@ -315,9 +313,9 @@ You are a summarization assistant for a news app. Given a list of news items (wi
 - "friendly": light and casual
 - "hinglish": "Use casual Hinglish — a natural mix of Hindi and English as spoken in daily Indian conversations. Write mostly in English but blend in simple Hindi words or phrases where it feels natural. DO NOT translate entire sentences into Hindi. Example: English: 'India’s cricket team won the series after a tough final match.' → Hinglish: 'India’s cricket team ne finally series jeet li — that last match was too intense!'"
 
-Give a description of around 60 words for each item.
-⚠️ IMPORTANT: Always return only valid JSON. No explanation or extra text.
-    if you don't get description, then form short one by refering the title.
+  Summarize in  about 60 words. If the original description text is too short, elaborate it slightly using real-world context or background information, but do not alter or invent facts. 
+  ⚠️ IMPORTANT: Always return only valid JSON. No explanation or extra text.
+  if you don't get description, then form short one by refering the title.
 Here is the input:
 ${JSON.stringify(chunk, null, 2)}
 
@@ -464,8 +462,6 @@ export async function extractAllNewsAsFeedMap(tone = "original") {
 
 
 
-// cron.js
-import cron from "node-cron";
 
 // Schedule the job to run at the top of every hour
 cron.schedule("0 * * * *", async () => {

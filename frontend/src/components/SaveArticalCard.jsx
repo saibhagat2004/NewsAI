@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Bookmark, Share2 } from 'lucide-react'; // Using lucide-react icons
+import { Bookmark, Share2, Trash } from 'lucide-react'; // Using lucide-react icons
 import toast from 'react-hot-toast'; // Optional: for user feedback
 
-export function NewsCard({ news , authUser }) {
+export function SaveArticalCard({ news , authUser }) {
   const formattedDate = new Date(news.pubDate).toLocaleString('en-IN', {
     dateStyle: 'medium',
     timeStyle: 'short',
@@ -16,7 +16,7 @@ export function NewsCard({ news , authUser }) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId:  authUser.authUser.authUser?._id, // make sure you have this
+          userId:  authUser.authUser?._id, // make sure you have this
           feedId: news.id,
           feedData: news,
         }),
@@ -27,6 +27,7 @@ export function NewsCard({ news , authUser }) {
       if (res.ok) {
         setIsSaved(data.isSaved);
         toast.success(data.message);
+        window.location.reload();
       } else {
         throw new Error(data.error);
       }
@@ -81,11 +82,11 @@ export function NewsCard({ news , authUser }) {
         <button
           onClick={handleSave}
           className={`p-1 rounded-full hover:bg-orange-100 transition ${
-            isSaved ? 'text-orange-600' : 'text-gray-500'
+            isSaved ? 'text-green-500' : 'text-red-700'
           }`}
           title="Save"
         >
-          <Bookmark size={20} fill={isSaved ? 'currentColor' : 'none'} />
+          <Trash size={20} fill={isSaved ? 'currentColor' : 'none'} />
         </button>
         <button
           onClick={handleShare}

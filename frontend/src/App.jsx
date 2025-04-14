@@ -9,7 +9,7 @@ import { Toaster } from "react-hot-toast"
 import { useQuery } from "@tanstack/react-query"
 import Navbar from "./components/common/NavBar";
 import Headlines from "./pages/Headline/Headlines";
-
+import SaveArticalPage from "./pages/saveNews/SaveArticalPage";
 
 function App() {
   
@@ -29,7 +29,6 @@ function App() {
         if (!res.ok) {
           throw new Error(data.error || "Something went wrong");
         }
-        console.log("authUser", data);
         return data;
       } catch (error) {
         throw new Error(error);
@@ -62,7 +61,7 @@ function App() {
           </div>
         )}
         <Routes>
-          <Route path="/" element={authUser || isGuest ? <HomePage /> : <Navigate to="/login" />} />
+          <Route path="/" element={authUser || isGuest ? <HomePage authUser={authUser} /> : <Navigate to="/login" />} />
           <Route
             path="/login"
             element={
@@ -79,7 +78,7 @@ function App() {
           />
           
           <Route path="/headlines" element={authUser || isGuest ? <Headlines /> : <Navigate to="/login" />} />
-
+          <Route path="/saved-news" element={authUser || isGuest ? <SaveArticalPage authUser={authUser} /> : <Navigate to="/login" />} />
         
         </Routes>
       </Suspense>

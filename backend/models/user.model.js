@@ -8,10 +8,6 @@ const userSchema = new mongoose.Schema(
       sparse: true,
             
     },
-    fullName: {
-      type: String,
-      required: false,
-    },
     password: {
       type: String,
       minLength: 6,
@@ -24,6 +20,11 @@ const userSchema = new mongoose.Schema(
     profilePicture: {
       type: String,
       default: "",
+    },
+    preferredTone: {
+      type: String,
+      default: "original", // Setting English as the default, but they can change it!
+      // The language they feel most comfortable using.
     },
     googleId: {
       type: String,

@@ -1,6 +1,8 @@
 
 import User from "../models/user.model.js"
 import bcrypt from "bcryptjs"
+import SavedFeed from '../models/savedFeedSchema.js';
+
 
 
 export const updateUser = async (req, res) => {
@@ -28,35 +30,6 @@ export const updateUser = async (req, res) => {
 			user.password = await bcrypt.hash(newPassword, salt);
 		}
 
-// 		if (profileImg) {
-// 			if (user.profileImg) {
-// 				// https://res.cloudinary.com/dyfqon1v6/image/upload/v1712997552/zmxorcxexpdbh8r0bkjb.png
-// 				await cloudinary.uploader.destroy(user.profileImg.split("/").pop().split(".")[0]);
-// 			}
-
-// 			const uploadedResponse = await cloudinary.uploader.upload(profileImg);
-// 			profileImg = uploadedResponse.secure_url;
-			
-// 			//uploadedResponse contains various pieces of information about the uploaded image, such as its URL, public ID, width, height, etc.
-//             //secure_url is a property of uploadedResponse that holds the URL of the uploaded image, which is accessible over HTTPS.
-// 			// profileImg = uploadedResponse.secure_url:
-// 			//This line assigns the secure_url of the uploaded image to the profileImg variable.
-// 			//After this assignment, profileImg will hold the URL of the uploaded image, rather than the original image data or path.
-// 			//Summary:
-// 			//The code uploads an image to Cloudinary and then updates the profileImg variable to hold the URL of the uploaded image. This URL can then be used to display the image on a website or store it in a database for future use.		
-
-// }
-
-
-// 		if (coverImg) {
-// 			if (user.coverImg) {
-// 				await cloudinary.uploader.destroy(user.coverImg.split("/").pop().split(".")[0]);
-// 			}
-
-// 			const uploadedResponse = await cloudinary.uploader.upload(coverImg);
-// 			coverImg = uploadedResponse.secure_url;
-// 		}
-
 		user.fullName = fullName || user.fullName;      //if user pass fullName then we update it  OR just keep old fullName
 		user.weight = weight || user.weight;
         user.height = height || user.height;
@@ -76,3 +49,57 @@ export const updateUser = async (req, res) => {
 		res.status(500).json({ error: error.message });
 	}
 };
+
+
+
+// controllers/feedController.js
+
+export const toggleSaveFeed = async (req, res) => {
+  try {
+    const { userId, feedId, feedData } = req.body;
+
+    if (!userId || !feedId || !feedData) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Check if feed is already saved
+    const existingFeed = await SavedFeed.findOne({ userId, feedId });
+
+    if (existingFeed) {
+      // If exists, remove it (unsave)
+      await SavedFeed.deleteOne({ _id: existingFeed._id });
+      return res.status(200).json({ message: 'Feed removed successfully', isSaved: false });
+    } else {
+      // Else, save it
+      await SavedFeed.create({ userId, feedId, feedData });
+      return res.status(200).json({ message: 'Feed saved successfully', isSaved: true });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Server error' });
+  }
+};
+
+
+
+
+
+
+// Controller to get all saved feeds for a user
+export const getSavedFeeds = async (req, res) => {
+	try {
+	  const { userId } = req.params;
+  
+	  if (!userId) {
+		return res.status(400).json({ message: 'User ID is required' });
+	  }
+  
+	  const savedFeeds = await SavedFeed.find({ userId });
+  
+	  res.status(200).json(savedFeeds);
+	} catch (error) {
+	  console.error('Error fetching saved feeds:', error);
+	  res.status(500).json({ message: 'Internal Server Error' });
+	}
+  };
+  

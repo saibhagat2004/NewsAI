@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { NewsCard } from './NewsCard';
 
-export function NewsList() {
+export function NewsList(authUser) {
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Selected categories — you can update this from user preferences later
-  const selectedCategories = [ 'business', 'world','sports','entertainment', 'tech', 'health', 'headlines'];
+  const selectedCategories = [ 'economy', 'politics','markets']; // Example categories
   const selectedTone = 'hinglish'; // You can dynamically change this later (e.g., from user preferences)
 
   useEffect(() => {
@@ -37,7 +37,7 @@ export function NewsList() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {news.map((item, index) => (
-        <NewsCard key={index} news={item} />
+        <NewsCard key={index} news={item} authUser={authUser}/>
       ))}
     </div>
   );
