@@ -209,7 +209,7 @@ function generateId(link) {
 
 export async function fetchFeedsMap() {
   const feedEntries = Object.entries(rssFeeds);
-  const oneHourAgo = subHours(new Date(), 1);
+  const oneHourAgo = subHours(new Date(), 2);
   console.log("oneHourAgo", oneHourAgo);
   const feedsMap = {};
 
