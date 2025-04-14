@@ -1,5 +1,5 @@
 import React from 'react';
-import { TopStoriesList } from './topStorieslist';
+import { TopStoriesList } from '../../components/TopStoriesList';
 
 function Headlines() {
   return (
