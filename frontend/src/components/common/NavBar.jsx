@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState,useEffect,useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import Avatar from "../../../public/avatars/boy1.png";
@@ -7,8 +7,11 @@ import { Home, Newspaper, Bookmark } from 'lucide-react';
 
 const Navbar = ({ authUser, isGuest, setIsGuest }) => {
   const navigate = useNavigate();
-  const [isOpen] = useState(false);
   const queryClient = useQueryClient();
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+
   const [activeTab, setActiveTab] = useState('for-you');
 
   const { mutate: logout } = useMutation({
@@ -43,7 +46,16 @@ const Navbar = ({ authUser, isGuest, setIsGuest }) => {
     }
     logout();
   };
-
+    // Close dropdown if clicked outside
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+          setIsOpen(false);
+        }
+      };
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
   return (
   <>
     {/* Top Navbar (All devices) */}
@@ -92,25 +104,41 @@ const Navbar = ({ authUser, isGuest, setIsGuest }) => {
       </div>
 
           {/* Right: Avatar (dropdown for both desktop & mobile) */}
-          <div className="dropdown dropdown-end">
-            <div tabIndex={0} role="button" className="btn btn-circle avatar bg-white opacity-90">
-              <div className="w-10 rounded-full">
-                <img
-                  src={authUser?.profilePicture || Avatar}
-                  alt="Avatar"
-                  className="w-10 h-10 rounded-full border border-gray-300"
-                />
-              </div>
-            </div>
-            <ul
-              tabIndex={0}
-              className="menu menu-sm dropdown-content bg-white rounded-box z-[1] mt-3 w-52 p-2 shadow"
+          <div className="relative" ref={dropdownRef}>
+      {/* Avatar Button */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="btn btn-circle bg-white opacity-90 p-0 border border-gray-300"
+      >
+        <img
+          src={authUser?.profilePicture || Avatar}
+          alt="Avatar"
+          className="w-10 h-10 rounded-full"
+        />
+      </button>
+
+      {/* Dropdown Menu */}
+      {isOpen && (
+        <ul className="absolute right-0 mt-3 w-52 p-2 bg-white opacity-90 shadow rounded-box z-50">
+          <li>
+            <Link to="/DashBoardPage" className="block px-4 py-2 hover:bg-gray-100">
+              Profile
+            </Link>
+          </li>
+          <li>
+            <a className="block px-4 py-2 hover:bg-gray-100">Settings</a>
+          </li>
+          <li>
+            <a
+              className="block px-4 py-2 hover:bg-gray-100 cursor-pointer"
+              onClick={handleLogout}
             >
-              <li><a>Profile</a></li>
-              <li><a>Settings</a></li>
-              <li><a onClick={handleLogout}>Logout</a></li>
-            </ul>
-          </div>
+              Logout
+            </a>
+          </li>
+        </ul>
+      )}
+    </div>
 
     </nav>
 
