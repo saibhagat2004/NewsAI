@@ -209,7 +209,7 @@ function generateId(link) {
 
 export async function fetchFeedsMap() {
   const feedEntries = Object.entries(rssFeeds);
-  const oneHourAgo = subHours(new Date(), 2);
+  const oneHourAgo = subHours(new Date(), 1);
   console.log("oneHourAgo", oneHourAgo);
   const feedsMap = {};
 
@@ -467,9 +467,22 @@ export async function extractAllNewsAsFeedMap(tone = "original") {
 // cron.js
 import cron from "node-cron";
 
-// Schedule the job to run at the top of every hour
-cron.schedule("0 * * * *", async () => {
-  console.log("🕐 Running hourly buildSummarization job...");
+// // Schedule the job to run at the top of every hour
+// cron.schedule("0 * * * *", async () => {
+//   console.log("🕐 Running hourly buildSummarization job...");
+
+//   try {
+//     await buildSummarization();
+//     console.log("✅ Summarization complete!");
+//   } catch (error) {
+//     console.error("❌ Summarization job failed:", error.message);
+//   }
+// });
+
+
+
+cron.schedule("*/2 * * * *", async () => {
+  console.log("🕑 Running buildSummarization job every 2 minutes (test mode)...");
 
   try {
     await buildSummarization();
@@ -478,7 +491,6 @@ cron.schedule("0 * * * *", async () => {
     console.error("❌ Summarization job failed:", error.message);
   }
 });
-
 
 // cron.schedule("* * * * *", async () => {
 //   console.log("🕐 Running buildSummarization job every minute (test mode)...");
