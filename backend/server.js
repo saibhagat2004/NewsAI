@@ -324,6 +324,11 @@ app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 app.use("/api/rss", rssRoutes);
 
+
+// Uptime monitoring endpoint to keep the server alive (used by bots like UptimeRobot)
+app.get('/api/ping', (req, res) => {
+  res.status(200).send('pong');
+});
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "/frontend/dist")));
 
