@@ -10,11 +10,10 @@ import { useQuery } from "@tanstack/react-query"
 import Navbar from "./components/common/NavBar";
 import Headlines from "./pages/Headline/Headlines";
 import SaveArticalPage from "./pages/saveNews/SaveArticalPage";
-
+import SettingsPage from "./pages/settingPage/Settings";
 function App() {
   
   const [isGuest, setIsGuest] = React.useState(false);
-
   const { data: authUser, isLoading } = useQuery({
     queryKey: ['authUser'],
     queryFn: async () => {
@@ -79,7 +78,8 @@ function App() {
           
           <Route path="/headlines" element={authUser || isGuest ? <Headlines /> : <Navigate to="/login" />} />
           <Route path="/saved-news" element={authUser || isGuest ? <SaveArticalPage authUser={authUser} /> : <Navigate to="/login" />} />
-        
+          <Route path="/setting" element={authUser || isGuest ? <SettingsPage /> : <Navigate to="/login" />} />
+
         </Routes>
       </Suspense>
       <Toaster />

@@ -9,8 +9,6 @@ import authRoutes from "./routers/auth.route.js";
 import rssRoutes from "./routers/rss.route.js";
 import userRoutes from "./routers/user.route.js" 
 
-import {cleanupOldFeeds} from  "./utility/cleanupFeeds.js"; // 👈 make sure the path is correct
-import cron from "node-cron";
 
 dotenv.config();
 
@@ -36,15 +34,9 @@ app.get('/api/ping', (req, res) => {
   res.status(200).send('pong');
 });
 
-//Schedule to run every day at midnight
-cron.schedule("0 0 * * *", () => {
-  console.log("Running feed cleanup job...");
-  cleanupOldFeeds();
-});
-
-
 
 if (process.env.NODE_ENV === "production") {
+
   app.use(express.static(path.join(__dirname, "/frontend/dist")));
 
   app.get("*", (req, res) => {

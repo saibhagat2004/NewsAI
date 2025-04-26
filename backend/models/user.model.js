@@ -6,7 +6,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       unique: true,
       sparse: true,
-            
     },
     password: {
       type: String,
@@ -23,19 +22,20 @@ const userSchema = new mongoose.Schema(
     },
     preferredTone: {
       type: String,
-      default: "original", // Setting English as the default, but they can change it!
-      // The language they feel most comfortable using.
+      default: "original",
+    },
+    preferredCategories: {
+      type: [String],
+      default: [],
     },
     googleId: {
       type: String,
       unique: true,
-      sparse: true, // Allows users to sign up with Google without conflicts
+      sparse: true,
     },
-  
   },
   { timestamps: true }
 );
 
 const User = mongoose.model("User", userSchema);
-
 export default User;

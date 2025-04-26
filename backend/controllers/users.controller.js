@@ -103,3 +103,50 @@ export const getSavedFeeds = async (req, res) => {
 	}
   };
   
+
+  export const updateUserPreferences = async (req, res) => {
+	try {
+	  const { userId, tone, categories } = req.body;
+  
+	  if (!userId) return res.status(400).json({ error: "User ID is required" });
+  
+	  const updatedUser = await User.findByIdAndUpdate(
+		userId,
+		{
+		  preferredTone: tone,
+		  preferredCategories: categories,
+		},
+		{ new: true }
+	  );
+  
+	  if (!updatedUser) return res.status(404).json({ error: "User not found" });
+  
+	  res.status(200).json({ message: "Preferences updated", user: updatedUser });
+	} catch (err) {
+	  console.error("❌ Error updating preferences:", err.message);
+	  res.status(500).json({ error: "Internal Server Error" });
+	}
+  };
+
+
+
+export const getUserPreferences = async (req, res) => {
+	try {
+	  const { userId } = req.params; // You will send userId as a route param (e.g., /preferences/:userId)
+  
+	  if (!userId) return res.status(400).json({ error: "User ID is required" });
+  
+	  const user = await User.findById(userId).select("preferredTone preferredCategories");
+  
+	  if (!user) return res.status(404).json({ error: "User not found" });
+  
+	  res.status(200).json({
+		preferredTone: user.preferredTone || "original",
+		preferredCategories: user.preferredCategories || [],
+	  });
+	} catch (err) {
+	  console.error("❌ Error fetching preferences:", err.message);
+	  res.status(500).json({ error: "Internal Server Error" });
+	}
+  };
+  

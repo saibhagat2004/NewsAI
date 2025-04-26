@@ -3,8 +3,9 @@ import crypto from "crypto";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import FinalFeedMap from "../models/newArtial.model.js";
 import { subHours } from 'date-fns';
-// cron.js
+import User from "../models/user.model.js"
 import cron from "node-cron";
+import { console } from "inspector";
 
 
 const parser = new Parser({
@@ -143,35 +144,8 @@ function weightedMerge(feedsMap, selectedCategories, totalItems = 25) {
 
   // Shuffle to ensure diverse distribution
   return shuffleArray(merged);
+  // return merged
 }
-
-
-// Controller to fetch and merge feeds
-// export async function fetchAndMergeFeeds(req, res) {
-//   const selectedCategories = req.body.categories; // e.g., ['sports', 'business']
-//   try {
-//     // Parse all feeds in parallel
-//     const allFeeds =  extractAllNewsAsFeedMap();
-
-//     // Map category to feed array
-//     const feedsMap = {};
-//     Object.keys(rssFeeds).forEach((cat, idx) => {
-//       feedsMap[cat] = allFeeds[idx];
-//     });
-
-//     console.log("feedsMap", feedsMap);
-
-//     // Merge using weighted logic + shuffle
-//     const mergedFeed = weightedMerge(feedsMap, selectedCategories, 50);
-
-//     res.json(mergedFeed);
-//   } catch (err) {
-//     console.error("Error loading feeds:", err);
-//     res.status(500).json({ error: "Failed to fetch feeds" });
-//   }
-// }
-
-// Controller
 
 
 export async function fetchAndMergeFeeds(req, res) {
@@ -184,10 +158,9 @@ export async function fetchAndMergeFeeds(req, res) {
     // ❌ Exclude 'headlines' from allFeeds
     delete allFeeds["headlines"];
 
-   
-
     // 🧠 Weighted merge
     const mergedFeed = weightedMerge(allFeeds, selectedCategories, 50);
+    console.log("Merged Feed:", mergedFeed);
 
     res.status(200).json(mergedFeed);
   } catch (err) {
@@ -439,7 +412,7 @@ export async function extractAllNewsAsFeedMap(tone = "original") {
       console.warn("No feeds document found in DB");
       return {};
     }
-
+ 
     const feedMap = {};
     for (const [category, items] of Object.entries(doc.feeds)) {
       feedMap[category] = items.map((item) => ({
@@ -452,7 +425,7 @@ export async function extractAllNewsAsFeedMap(tone = "original") {
         category: item.category,
       }));
     }
-
+    console.log("Extracted feedsMap:", feedMap);
     return feedMap;
   } catch (err) {
     console.error("❌ Failed to extract feeds:", err.message);
@@ -477,12 +450,40 @@ cron.schedule("0 * * * *", async () => {
 
 
 
-
-
-// cron.schedule("* * * * *", async () => {
-//   console.log("🕐 Running buildSummarization job every minute (test mode)...");
-
-//     await buildSummarization();
-//     console.log("✅ Summarization complete!");
+//Schedule to run every day at midnight
+cron.schedule("0 0 * * *", async () => {
+  console.log("Running feed cleanup job...");
+   try {
+      console.log("Checking for outdated feeds...");
+      const cutoffDate = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 hours ago  
   
-// });
+      const docs = await FinalFeedMap.find();
+  
+      for (const doc of docs) {
+        let updated = false;
+  
+        for (const [category, items] of doc.feeds.entries()) {
+          const filtered = items.filter(item => new Date(item.pubDate) >= cutoffDate);
+  
+          if (filtered.length !== items.length) {
+            doc.feeds.set(category, filtered);
+            updated = true;
+          }
+        }
+  
+        if (updated) {
+          await doc.save();
+          console.log(`✅ Cleaned document ${doc._id}`);
+        }
+      }
+  
+      console.log("Cleanup completed ✅");
+    } catch (error) {
+      console.error("❌ Cleanup failed:", error);
+    }
+  
+  
+});
+
+
+

@@ -1,14 +1,29 @@
 import React, { useState } from 'react';
 import { Bookmark, Share2 } from 'lucide-react'; // Using lucide-react icons
 import toast from 'react-hot-toast'; // Optional: for user feedback
+import { useQueryClient } from '@tanstack/react-query';
 
-export function NewsCard({ news , authUser }) {
+
+
+export function NewsCard({news}) {
+  const queryClient = useQueryClient();
+  const authUser = queryClient.getQueryData(['authUser']);
   const formattedDate = new Date(news.pubDate).toLocaleString('en-IN', {
     dateStyle: 'medium',
     timeStyle: 'short',
   });
   const [isSaved, setIsSaved] = useState(false);
   const handleSave = async () => {
+    if (!authUser?._id) {
+      toast.error('Please login to save articles');
+      return;
+    }
+  
+    if (!news.link) {
+      toast.error('Invalid news item');
+      return;
+    }
+  
     try {
       const res = await fetch('/api/user/save-feed', {
         method: 'POST',
@@ -16,7 +31,7 @@ export function NewsCard({ news , authUser }) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId:  authUser.authUser.authUser?._id, // make sure you have this
+          userId: authUser._id,
           feedId: news.id,
           feedData: news,
         }),
@@ -36,7 +51,6 @@ export function NewsCard({ news , authUser }) {
     }
   };
   
-
   const handleShare = async () => {
     try {
       await navigator.share({

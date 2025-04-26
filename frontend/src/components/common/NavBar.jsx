@@ -120,13 +120,16 @@ const Navbar = ({ authUser, isGuest, setIsGuest }) => {
       {/* Dropdown Menu */}
       {isOpen && (
         <ul className="absolute right-0 mt-3 w-52 p-2 bg-white opacity-90 shadow rounded-box z-50">
-          <li>
+          {/* <li>
             <Link to="/DashBoardPage" className="block px-4 py-2 hover:bg-gray-100">
               Profile
             </Link>
-          </li>
+          </li> */}
           <li>
+            <Link to="/setting" className="block px-4 py-2 hover:bg-gray-100">
             <a className="block px-4 py-2 hover:bg-gray-100">Settings</a>
+            </Link>
+            
           </li>
           <li>
             <a
