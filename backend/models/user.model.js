@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema(
     },
     preferredTone: {
       type: String,
-      default: "original",
+      default: "hinglish",
     },
     preferredCategories: {
       type: [String],

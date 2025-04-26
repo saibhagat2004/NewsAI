@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useQueryClient } from '@tanstack/react-query';
-
+import tost from "react-hot-toast";
 const toneOptions = [
   { label: "Formal", value: "formal", emoji: "📘" },
   { label: "Friendly", value: "friendly", emoji: "😊" },
@@ -53,7 +53,7 @@ const SettingsPage = () => {
   
       const userId = authUser?._id; // Replace this if you use auth context or cookies
       if (!userId) {
-        alert("Please log in to save preferences.");
+        tost.error("Please log in to save preferences.");
         return;
       }
   
@@ -65,16 +65,16 @@ const SettingsPage = () => {
   
       const data = await res.json();
       if (res.ok) {
-        alert("Preferences saved!");
+        tost.success("Preferences saved!");
   
         // Invalidate the authUser cache so it fetches fresh data
         queryClient.invalidateQueries(['authUser']);
       } else {
-        alert("Failed to save: " + data.error);
+        tost.error("Failed to save preferences: " + data.error);
       }
     } catch (err) {
       console.error("Error saving preferences:", err);
-      alert("Something went wrong!");
+      tost.error("Something went wrong!");
     }
   };
 

@@ -180,6 +180,7 @@ const Navbar = ({ authUser, isGuest, setIsGuest }) => {
           Saved
         </button>
       </Link>
+      
     </div>
   </>
 );

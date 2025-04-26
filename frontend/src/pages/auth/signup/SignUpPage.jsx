@@ -78,11 +78,21 @@ const SignUpPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-white shadow-xl rounded-xl p-8">
-        <h1 className="text-3xl font-bold text-blue-700 text-center mb-2">Create a Bharat Brief Account</h1>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+  <div className="flex flex-col md:flex-row w-full max-w-4xl bg-white overflow-hidden shadow-lg rounded-lg">
+
+    {/* Left side - Image */}
+    <div className="hidden md:block md:w-1/2 bg-white">
+    <img src="/newsPage.jpg"alt="NewsAI Illustration" className="h-full w-full  object-contain" />
+
+    </div>
+
+    {/* Right side - Signup Form */}
+    <div className="w-full md:w-1/2 p-8 flex flex-col justify-center">
+      <div className="w-full max-w-sm mx-auto">
+        <h1 className="text-3xl font-bold text-blue-700 text-center mb-2">Create a NewsAI Account</h1>
         <p className="text-center text-gray-600 mb-6">
-          Sign up to personalize your news feed and stay informed.
+          Join now to enjoy personalized, summarized news in the tone you love!
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -137,7 +147,7 @@ const SignUpPage = () => {
             </div>
           </div>
 
-          {/* Submit */}
+          {/* Submit Button */}
           <button
             type="submit"
             disabled={isPending}
@@ -169,6 +179,10 @@ const SignUpPage = () => {
         </form>
       </div>
     </div>
+
+  </div>
+</div>
+
   );
 };
 

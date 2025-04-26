@@ -60,7 +60,7 @@ function App() {
           </div>
         )}
         <Routes>
-          <Route path="/" element={authUser || isGuest ? <HomePage authUser={authUser} /> : <Navigate to="/login" />} />
+          <Route path="/" element={authUser || isGuest ? <HomePage /> : <Navigate to="/login" />} />
           <Route
             path="/login"
             element={
