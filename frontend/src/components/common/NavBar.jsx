@@ -108,7 +108,7 @@ const Navbar = ({ authUser, isGuest, setIsGuest }) => {
       {/* Avatar Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="btn btn-circle bg-white opacity-90 p-0 border border-gray-300"
+        className="btn btn-circle bg-white opacity-90 p-0 border border-gray-300 overflow-hidden"
       >
         <img
           src={authUser?.profilePicture || Avatar}
