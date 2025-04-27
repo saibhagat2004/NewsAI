@@ -22,9 +22,10 @@ const allCategories = [
 const SettingsPage = () => {
   const queryClient = useQueryClient();
   const authUser = queryClient.getQueryData(['authUser']);
+  console.log("Auth User:", authUser);
 
   const [tone, setTone] = useState("formal");
-  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectedCategories, setSelectedCategories] = useState(authUser?.preferredCategories || []);
 
 
 

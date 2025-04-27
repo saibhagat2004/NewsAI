@@ -4,64 +4,7 @@ import { generateTokenAndSetCookie } from '../generateToken.js';
 import User from '../models/user.model.js';
 import bcrypt from 'bcryptjs';
 
-// export const signup = async (req, res) => {
-//     try {
-//         const { fullName = "", username, email, password, googleId, profilePicture } = req.body;
 
-//         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-//         if (!emailRegex.test(email)) {
-//             return res.status(400).json({ error: "Invalid email format" });
-//         }
-//         let newUser;
-//         if (googleId) {
-//             newUser = new User({
-//                 fullName,
-//                 email,
-//                 googleId,
-//                 profilePicture: profilePicture || "",
-//                 username: username || "", // Default to an empty string if username is not provided
-
-//             });
-//         } else {
-//             const existingEmail = await User.findOne({ email });
-//             if (existingEmail) {
-//                 return res.status(400).json({ error: "Email is already taken" });
-//             }
-//             if (!username || !password || password.length < 6) {
-//                 return res.status(400).json({ error: "Username and password are required, and password must be at least 6 characters long" });
-//             }
-            
-//             const existingUser = await User.findOne({ username });
-//             if (existingUser) {
-//                 return res.status(400).json({ error: "Username is already taken" });
-//             }
-
-//             const salt = await bcrypt.genSalt(10);
-//             const hashedPassword = await bcrypt.hash(password, salt);
-
-//             newUser = new User({
-//                 fullName,
-//                 username,
-//                 email,
-//                 password: hashedPassword,
-//             });
-//         }
-
-//         await newUser.save();
-//         generateTokenAndSetCookie(newUser._id, res);
-
-//         res.status(201).json({
-//             _id: newUser._id,
-//             fullName: newUser.fullName,
-//             username: newUser.username || "", 
-//             email: newUser.email,
-//             profilePicture: newUser.profilePicture,
-//         });
-//     } catch (error) {
-//         console.log("Error in signup controller", error.message);
-//         res.status(500).json({ error: "Internal Server Error" });
-//     }
-// };
 
 export const signup = async (req, res) => {
     try {
@@ -185,7 +128,6 @@ export const login = async (req, res) => {
         
                 try {
                     await user.save();
-                    console.log("New Google user saved:", user);
                 } catch (error) {
                     console.error("Error saving Google user:", error.message);
                     return res.status(500).json({ error: "Failed to save Google user" });
@@ -194,7 +136,6 @@ export const login = async (req, res) => {
         }
         else {
               user= await User.findOne({ username });
-              console.log("User found:", user);
               if (!username || !password) {
                 return res.status(400).json({ error: "Username and password are required" });
               }

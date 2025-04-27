@@ -147,10 +147,15 @@ function weightedMerge(feedsMap, selectedCategories, totalItems = 25) {
   // return merged
 }
 
-
 export async function fetchAndMergeFeeds(req, res) {
   const selectedCategories = req.body.categories; // ['sports', 'business', etc.]
   const tone = req.body.tone || "original";       // e.g., 'hindi', 'friendly'
+  
+  console.log("Selected categories:", selectedCategories);
+  if (!selectedCategories || selectedCategories.length === 0) {
+    selectedCategories =["sports","entertainment","world"]; // Use all categories from rssFeeds
+    console.log("No categories provided, using all categories:", selectedCategories);
+  }
 
   try {
     const allFeeds = await extractAllNewsAsFeedMap(tone);

@@ -26,7 +26,7 @@ const userSchema = new mongoose.Schema(
     },
     preferredCategories: {
       type: [String],
-      default: [],
+      default: ["sports","entertainment","world", "Politics"],
     },
     googleId: {
       type: String,
