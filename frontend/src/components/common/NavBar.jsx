@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState,useEffect,useRef } from "react";
+import {useLocation} from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import Avatar from "../../../public/avatars/boy1.png";
@@ -12,8 +13,16 @@ const Navbar = ({ authUser, isGuest, setIsGuest }) => {
   const dropdownRef = useRef(null);
 
 
-  const [activeTab, setActiveTab] = useState('for-you');
-
+  const [activeTab, setActiveTab] = useState("");
+  useEffect(() => {
+    if (location.pathname === "/") {
+      setActiveTab("for-you");
+    } else if (location.pathname === "/headlines") {
+      setActiveTab("headlines");
+    } else if (location.pathname === "/saved-news") {
+      setActiveTab("saved-news");
+    }
+  }, [location.pathname]);
   const { mutate: logout } = useMutation({
     mutationFn: async () => {
       try {
