@@ -8,6 +8,9 @@ import connectMongoDB from "./db/connectMongoDB.js";
 import authRoutes from "./routers/auth.route.js";
 import rssRoutes from "./routers/rss.route.js";
 import userRoutes from "./routers/user.route.js" 
+import {cleanupOldFeeds} from "./utility/cleanupFeeds.js"
+import { buildSummarization } from "./controllers/rss.controller.js";
+import cron from "node-cron";
 
 
 dotenv.config();
@@ -33,6 +36,20 @@ app.use("/api/user", userRoutes);
 app.get('/api/ping', (req, res) => {
   res.status(200).send('pong');
 });
+
+
+cron.schedule("0 0 * * *", () => {
+  console.log("✅ Clenning up At: ", new Date().toLocaleTimeString());
+  cleanupOldFeeds();
+});
+
+
+cron.schedule("0 * * * *", async () => {
+  console.log("🕐 Running hourly buildSummarization job...");
+    await buildSummarization();
+    console.log("✅ Summarization complete!");
+});
+
 
 
 if (process.env.NODE_ENV === "production") {

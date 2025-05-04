@@ -268,6 +268,7 @@ function chunkArray(array, size) {
 
 
 export async function buildSummarization(req, res) {
+  console.log("🕐 Running batched AI summarization job...");
   try {
     const feedsMap = await fetchFeedsMap();
     const aiInput = buildSummarizationInput(feedsMap);
@@ -444,53 +445,3 @@ export async function extractAllNewsAsFeedMap(tone = "original") {
 
 
 // Schedule the job to run at the top of every hour
-cron.schedule("0 * * * *", async () => {
-  console.log("🕐 Running hourly buildSummarization job...");
-
-  try {
-    await buildSummarization();
-    console.log("✅ Summarization complete!");
-  } catch (error) {
-    console.error("❌ Summarization job failed:", error.message);
-  }
-});
-
-
-
-//Schedule to run every day at midnight
-cron.schedule("0 0 * * *", async () => {
-  console.log("Running feed cleanup job...");
-   try {
-      console.log("Checking for outdated feeds...");
-      const cutoffDate = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 hours ago  
-  
-      const docs = await FinalFeedMap.find();
-  
-      for (const doc of docs) {
-        let updated = false;
-  
-        for (const [category, items] of doc.feeds.entries()) {
-          const filtered = items.filter(item => new Date(item.pubDate) >= cutoffDate);
-  
-          if (filtered.length !== items.length) {
-            doc.feeds.set(category, filtered);
-            updated = true;
-          }
-        }
-  
-        if (updated) {
-          await doc.save();
-          console.log(`✅ Cleaned document ${doc._id}`);
-        }
-      }
-  
-      console.log("Cleanup completed ✅");
-    } catch (error) {
-      console.error("❌ Cleanup failed:", error);
-    }
-  
-  
-});
-
-
-
