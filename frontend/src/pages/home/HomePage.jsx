@@ -1,9 +1,11 @@
 import React from 'react';
 import { NewsList } from '../../components/NewsList';
 import { useQueryClient } from '@tanstack/react-query';
+import { Link, useNavigate } from "react-router-dom";
+
 
 const toneOptions = [
-  { label: "Formal", value: "formal", emoji: "📘" },
+  { label: "Original", value: "formal", emoji: "📘" },
   { label: "Friendly", value: "friendly", emoji: "😊" },
   { label: "Hinglish", value: "hinglish", emoji: "😎" },
   { label: "Hindi", value: "hindi", emoji: "🕉️" },
@@ -27,8 +29,11 @@ function HomePage() {
             <span className="inline-flex items-center bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded capitalize">
               {matchedTone ? (
                 <>
-                  <span className="mr-1">{matchedTone.emoji}</span>
-                  {matchedTone.label}
+                   <Link to="/setting" className="block px-4 py-2 hover:bg-gray-100">
+                   <span className="hidden sm:inline">Tone:</span>
+                    <span className="mr-1">{matchedTone.emoji}</span>
+                      {matchedTone.label}
+                  </Link>
                 </>
               ) : (
                 'Original'
