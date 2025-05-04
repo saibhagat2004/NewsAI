@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useQueryClient } from '@tanstack/react-query';
 import tost from "react-hot-toast";
 const toneOptions = [
-  { label: "Formal", value: "formal", emoji: "📘" },
+  { label: "Original", value: "formal", emoji: "📘" },
   { label: "Friendly", value: "friendly", emoji: "😊" },
   { label: "Hinglish", value: "hinglish", emoji: "😎" },
   { label: "Hindi", value: "hindi", emoji: "🕉️" },

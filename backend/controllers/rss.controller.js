@@ -31,38 +31,41 @@ const rssFeeds = {
 // Controller to fetch headlines
 export async function getHeadlines(req, res) {
   try {
-    const feed = await parser.parseURL(rssFeeds.politics);
+    const feed = await parser.parseURL(rssFeeds.headlines); // Fetch headlines feed
 
-    const feedData = feed.items.map((item) => {
-      let image = null;
+    const feedData = feed.items
+      .map((item) => {
+        let image = null;
 
-      // Access media:content and extract image URL
-      if (item.mediaContent && item.mediaContent.length > 0) {
-        const media = item.mediaContent[0];
-        if (media && media.$ && media.$.url) {
-          image = media.$.url;
+        // Access media:content and extract image URL
+        if (item.mediaContent && item.mediaContent.length > 0) {
+          const media = item.mediaContent[0];
+          if (media && media.$ && media.$.url) {
+            image = media.$.url;
+          }
         }
-      }
 
-      // Fallback: enclosure
-      if (!image && item.enclosure && item.enclosure.url) {
-        image = item.enclosure.url;
-      }
+        // Fallback: enclosure
+        if (!image && item.enclosure && item.enclosure.url) {
+          image = item.enclosure.url;
+        }
 
-      // Fallback: img tag in description
-      if (!image && item.description) {
-        const imageMatch = item.description.match(/<img[^>]+src="([^">]+)"/);
-        image = imageMatch ? imageMatch[1] : null;
-      }
+        // Fallback: img tag in description
+        if (!image && item.description) {
+          const imageMatch = item.description.match(/<img[^>]+src="([^">]+)"/);
+          image = imageMatch ? imageMatch[1] : null;
+        }
 
-      return {
-        title: item.title,
-        link: item.link,
-        description: item.contentSnippet || item.content || item.description || "",
-        pubDate: item.pubDate,
-        image,
-      };
-    });
+        return {
+          title: item.title,
+          link: item.link,
+          description: item.contentSnippet || item.content || item.description || "",
+          pubDate: new Date(item.pubDate), // Ensure pubDate is a Date object
+          image,
+        };
+      })
+      .sort((a, b) => b.pubDate - a.pubDate) // Sort by pubDate (latest first)
+      .slice(0, 50); // Limit to the latest 50 headlines
 
     res.json(feedData);
   } catch (error) {
@@ -70,9 +73,6 @@ export async function getHeadlines(req, res) {
     res.status(500).json({ error: "Failed to fetch RSS feed" });
   }
 }
-
-
-
 
 // Utility to parse and normalize one feed
 async function parseFeed(url, categoryName) {
