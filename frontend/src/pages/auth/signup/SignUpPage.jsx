@@ -90,7 +90,7 @@ const SignUpPage = () => {
     {/* Right side - Signup Form */}
     <div className="w-full md:w-1/2 p-8 flex flex-col justify-center">
       <div className="w-full max-w-sm mx-auto">
-        <h1 className="text-3xl font-bold text-blue-700 text-center mb-2">Create a NewsAI Account</h1>
+        <h1 className="text-3xl font-bold text-blue-700 text-center mb-2">Create a Bharat Brief  Account</h1>
         <p className="text-center text-gray-600 mb-6">
           Join now to enjoy personalized, summarized news in the tone you love!
         </p>

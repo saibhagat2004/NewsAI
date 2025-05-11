@@ -71,7 +71,7 @@ return (
       {/* Right side - Login Form */}
       
       <div className="w-full md:w-1/2 p-8">
-        <h1 className="text-3xl font-bold text-blue-700 text-center mb-6">Welcome to NewsAI</h1>
+        <h1 className="text-3xl font-bold text-blue-700 text-center mb-6">Welcome to Bharat Brief </h1>
         <p className="text-center text-gray-600 mb-8">
           Sign in to catch up on the latest Indian stories and headlines.
         </p>
