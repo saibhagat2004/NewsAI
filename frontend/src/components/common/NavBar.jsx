@@ -70,7 +70,7 @@ const Navbar = ({ authUser, isGuest, setIsGuest }) => {
     {/* Top Navbar (All devices) */}
     <nav className="bg-white px-6 py-3  flex justify-between items-center shadow-md fixed top-0 left-0 right-0 z-50">
       {/* Left: Logo */}
-      <div className="text-3xl font-extrabold text-black">NewsAI</div>
+      <div className="text-3xl font-extrabold text-black">Bharat Brief </div>
 
       {/* Center: Nav Links (hidden on mobile) */}
       <div className="hidden md:flex space-x-8 text-base">
