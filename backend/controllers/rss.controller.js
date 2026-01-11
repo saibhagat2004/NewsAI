@@ -28,50 +28,12 @@ const rssFeeds = {
   health: "https://feeds.feedburner.com/ndtvcooks-latest",
 };
 
-// Controller to fetch headlines
-export async function getHeadlines(req, res) {
-  try {
-    const feed = await parser.parseURL(rssFeeds.headlines); // Fetch headlines feed
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
 
-    const feedData = feed.items
-      .map((item) => {
-        let image = null;
-
-        // Access media:content and extract image URL
-        if (item.mediaContent && item.mediaContent.length > 0) {
-          const media = item.mediaContent[0];
-          if (media && media.$ && media.$.url) {
-            image = media.$.url;
-          }
-        }
-
-        // Fallback: enclosure
-        if (!image && item.enclosure && item.enclosure.url) {
-          image = item.enclosure.url;
-        }
-
-        // Fallback: img tag in description
-        if (!image && item.description) {
-          const imageMatch = item.description.match(/<img[^>]+src="([^">]+)"/);
-          image = imageMatch ? imageMatch[1] : null;
-        }
-
-        return {
-          title: item.title,
-          link: item.link,
-          description: item.contentSnippet || item.content || item.description || "",
-          pubDate: new Date(item.pubDate), // Ensure pubDate is a Date object
-          image,
-        };
-      })
-      .sort((a, b) => b.pubDate - a.pubDate) // Sort by pubDate (latest first)
-      .slice(0, 50); // Limit to the latest 50 headlines
-
-    res.json(feedData);
-  } catch (error) {
-    console.error("Error fetching RSS feed:", error);
-    res.status(500).json({ error: "Failed to fetch RSS feed" });
-  }
+function generateId(link) {
+  return crypto.createHash("md5").update(link).digest("hex");
 }
 
 // Utility to parse and normalize one feed
@@ -147,43 +109,17 @@ function weightedMerge(feedsMap, selectedCategories, totalItems = 25) {
   // return merged
 }
 
-export async function fetchAndMergeFeeds(req, res) {
-  let  selectedCategories = ["sports", "entertainment", "world"];
-  selectedCategories = req.body.categories; // ['sports', 'business', etc.]
-  const tone = req.body.tone || "original";      // e.g., 'hindi', 'friendly'
-
-  console.log("Selected categories:", selectedCategories);
-
-  if (!selectedCategories || selectedCategories.length === 0) {
-    // 🛠️ Set default categories (for guests)
-    selectedCategories = ["sports", "entertainment", "world"];
-    console.log("No categories provided, using guest defaults:", selectedCategories);
+function chunkArray(array, size) {
+  const chunks = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
   }
-
-  try {
-    const allFeeds = await extractAllNewsAsFeedMap(tone);
-
-    // ❌ Exclude 'headlines' from allFeeds
-    delete allFeeds["headlines"];
-
-    // 🧠 Weighted merge
-    const mergedFeed = weightedMerge(allFeeds, selectedCategories, 50);
-    console.log("Merged Feed:", mergedFeed);
-
-    res.status(200).json(mergedFeed);
-  } catch (err) {
-    console.error("❌ Error loading feeds:", err.message);
-    res.status(500).json({ error: "Failed to fetch feeds" });
-  }
+  return chunks;
 }
 
-
-
-
-function generateId(link) {
-  return crypto.createHash("md5").update(link).digest("hex");
-}
-
+// ============================================
+// MAIN FLOW: STEP 1 - FETCH FRESH FEEDS
+// ============================================
 
 export async function fetchFeedsMap() {
   const feedEntries = Object.entries(rssFeeds);
@@ -240,6 +176,11 @@ export async function fetchFeedsMap() {
 
   return feedsMap;
 }
+
+// ============================================
+// MAIN FLOW: STEP 2 - PREPARE AI INPUT
+// ============================================
+
 // Prepare AI input from feedsMap
 function buildSummarizationInput(feedsMap) {
   const aiInput = [];
@@ -257,15 +198,9 @@ function buildSummarizationInput(feedsMap) {
   return aiInput;
 }
 
-function chunkArray(array, size) {
-  const chunks = [];
-  for (let i = 0; i < array.length; i += size) {
-    chunks.push(array.slice(i, i + size));
-  }
-  return chunks;
-}
-
-
+// ============================================
+// MAIN FLOW: STEP 3 - AI SUMMARIZATION & SAVE
+// ============================================
 
 export async function buildSummarization(req, res) {
   console.log("🕐 Running batched AI summarization job...");
@@ -288,56 +223,56 @@ export async function buildSummarization(req, res) {
       console.log(`🚀 Processing batch ${batchIndex}/${aiChunks.length}`);
       const prompt = `You are a news summarization assistant. For each news item, create 4 DIFFERENT versions of both title AND description.
 
-CRITICAL: Each field MUST be unique - do NOT copy same text to all 4 fields!
+      CRITICAL: Each field MUST be unique - do NOT copy same text to all 4 fields!
 
-1. "original" = Keep exact original English text unchanged
-2. "hindi" = Fully translate to Hindi (देवनागरी script only, not English)
-3. "friendly" = Rewrite in casual conversational English tone
-4. "hinglish" = Natural mix - mostly English with Hindi words (जैसे "India ne match jeet liya yaar!")
+      1. "original" = Keep exact original English text unchanged
+      2. "hindi" = Fully translate to Hindi (देवनागरी script only, not English)
+      3. "friendly" = Rewrite in casual conversational English tone
+      4. "hinglish" = Natural mix - mostly English with Hindi words (जैसे "India ne match jeet liya yaar!")
 
-EXAMPLE OF CORRECT FORMAT:
-{
-  "id": "123",
-  "title": {
-    "original": "India wins cricket match against Australia",
-    "hindi": "भारत ने ऑस्ट्रेलिया के खिलाफ क्रिकेट मैच जीता",
-    "friendly": "India totally crushed Australia in cricket!",
-    "hinglish": "India ne Australia ko cricket mein hara diya - kya game tha!"
-  },
-  "description": {
-    "original": "India defeated Australia by 50 runs in the finals",
-    "hindi": "भारत ने फाइनल में ऑस्ट्रेलिया को 50 रनों से हराया",
-    "friendly": "Team India absolutely dominated the finals, winning by a solid 50 runs against Australia!",
-    "hinglish": "India ne finals mein Australia ko 50 runs se haraya - team ne kamaal kar diya!"
-  }
-}
+      EXAMPLE OF CORRECT FORMAT:
+      {
+        "id": "123",
+        "title": {
+          "original": "India wins cricket match against Australia",
+          "hindi": "भारत ने ऑस्ट्रेलिया के खिलाफ क्रिकेट मैच जीता",
+          "friendly": "India totally crushed Australia in cricket!",
+          "hinglish": "India ne Australia ko cricket mein hara diya - kya game tha!"
+        },
+        "description": {
+          "original": "India defeated Australia by 50 runs in the finals",
+          "hindi": "भारत ने फाइनल में ऑस्ट्रेलिया को 50 रनों से हराया",
+          "friendly": "Team India absolutely dominated the finals, winning by a solid 50 runs against Australia!",
+          "hinglish": "India ne finals mein Australia ko 50 runs se haraya - team ne kamaal kar diya!"
+        }
+      }
 
-Keep descriptions around 60 words. If description is short, expand with context.
+      Keep descriptions around 60 words. If description is short, expand with context.
 
-Return ONLY valid JSON array. No markdown, no explanations.
+      Return ONLY valid JSON array. No markdown, no explanations.
 
-Input:
-${JSON.stringify(chunk, null, 2)}
+      Input:
+      ${JSON.stringify(chunk, null, 2)}
 
-Format:
-[
-  {
-    "id": "abc123",
-    "title": {
-      "original": "...",
-       "hindi": "...",
-      "friendly": "...",
-      "hinglish": "..." 
-    },
-    "description": {
-      "original": "...",
-      "hindi": "..."
-      "friendly": "...",
-      "hinglish": "..."  
-    }
-  }
-]
-`;
+      Format:
+      [
+        {
+          "id": "abc123",
+          "title": {
+            "original": "...",
+            "hindi": "...",
+            "friendly": "...",
+            "hinglish": "..." 
+          },
+          "description": {
+            "original": "...",
+            "hindi": "..."
+            "friendly": "...",
+            "hinglish": "..."  
+          }
+        }
+      ]
+      `;
 
       try {
         const result = await model.generateContent(prompt);
@@ -384,7 +319,22 @@ Format:
               title: summary.title,
               description: summary.description,
             }
-          : article; // fallback to original if not summarized
+          : {
+              ...article,
+              // If not summarized, create object format with original text in all tones
+              title: {
+                original: article.title,
+                hindi: article.title,
+                friendly: article.title,
+                hinglish: article.title,
+              },
+              description: {
+                original: article.description,
+                hindi: article.description,
+                friendly: article.description,
+                hinglish: article.description,
+              },
+            };
       });
     }
 
@@ -443,6 +393,10 @@ if (!existingDoc) {
   }
 }
 
+// ============================================
+// MAIN FLOW: STEP 4 - RETRIEVE FROM DATABASE
+// ============================================
+
 export async function extractAllNewsAsFeedMap(tone = "original") {
   try {
     const doc = await FinalFeedMap.findOne({}).lean();
@@ -471,7 +425,88 @@ export async function extractAllNewsAsFeedMap(tone = "original") {
   }
 }
 
+// ============================================
+// MAIN FLOW: STEP 5 - SERVE TO USERS
+// ============================================
 
+export async function fetchAndMergeFeeds(req, res) {
+  let  selectedCategories = ["sports", "entertainment", "world"];
+  selectedCategories = req.body.categories; // ['sports', 'business', etc.]
+  const tone = req.body.tone || "original";      // e.g., 'hindi', 'friendly'
 
+  console.log("Selected categories:", selectedCategories);
+
+  if (!selectedCategories || selectedCategories.length === 0) {
+    // 🛠️ Set default categories (for guests)
+    selectedCategories = ["sports", "entertainment", "world"];
+    console.log("No categories provided, using guest defaults:", selectedCategories);
+  }
+
+  try {
+    const allFeeds = await extractAllNewsAsFeedMap(tone);
+
+    // ❌ Exclude 'headlines' from allFeeds
+    delete allFeeds["headlines"];
+
+    // 🧠 Weighted merge
+    const mergedFeed = weightedMerge(allFeeds, selectedCategories, 50);
+    console.log("Merged Feed:", mergedFeed);
+
+    res.status(200).json(mergedFeed);
+  } catch (err) {
+    console.error("❌ Error loading feeds:", err.message);
+    res.status(500).json({ error: "Failed to fetch feeds" });
+  }
+}
+
+// ============================================
+// SEPARATE ENDPOINT: HEADLINES
+// ============================================
+
+// Controller to fetch headlines
+export async function getHeadlines(req, res) {
+  try {
+    const feed = await parser.parseURL(rssFeeds.headlines); // Fetch headlines feed
+
+    const feedData = feed.items
+      .map((item) => {
+        let image = null;
+
+        // Access media:content and extract image URL
+        if (item.mediaContent && item.mediaContent.length > 0) {
+          const media = item.mediaContent[0];
+          if (media && media.$ && media.$.url) {
+            image = media.$.url;
+          }
+        }
+
+        // Fallback: enclosure
+        if (!image && item.enclosure && item.enclosure.url) {
+          image = item.enclosure.url;
+        }
+
+        // Fallback: img tag in description
+        if (!image && item.description) {
+          const imageMatch = item.description.match(/<img[^>]+src="([^">]+)"/);
+          image = imageMatch ? imageMatch[1] : null;
+        }
+
+        return {
+          title: item.title,
+          link: item.link,
+          description: item.contentSnippet || item.content || item.description || "",
+          pubDate: new Date(item.pubDate), // Ensure pubDate is a Date object
+          image,
+        };
+      })
+      .sort((a, b) => b.pubDate - a.pubDate) // Sort by pubDate (latest first)
+      .slice(0, 50); // Limit to the latest 50 headlines
+
+    res.json(feedData);
+  } catch (error) {
+    console.error("Error fetching RSS feed:", error);
+    res.status(500).json({ error: "Failed to fetch RSS feed" });
+  }
+}
 
 // Schedule the job to run at the top of every hour

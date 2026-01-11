@@ -32,12 +32,6 @@ app.use("/api/user", userRoutes);
 
 
 
-// // Uptime monitoring endpoint to keep the server alive (used by bots like UptimeRobot)
-// app.get('/api/ping', (req, res) => {
-//   res.status(200).send('pong');
-// });
-
-
 cron.schedule("0 0 * * *", () => {
   console.log("✅ Clenning up At: ", new Date().toLocaleTimeString());
   cleanupOldFeeds();
@@ -73,8 +67,8 @@ app.listen(PORT,async () => {
     await buildSummarization();
     console.log("✅ Initial summarization complete!");
 
-  //     console.log("✅ Clenning up At: ", new Date().toLocaleTimeString());
-  // cleanupOldFeeds();
+    console.log("✅ Clenning up At: ", new Date().toLocaleTimeString());
+  cleanupOldFeeds();
   } catch (error) {
     console.error("❌ Initial summarization failed:", error.message);
   }
