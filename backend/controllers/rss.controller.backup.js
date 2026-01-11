@@ -279,44 +279,25 @@ export async function buildSummarization(req, res) {
     console.log("📦 Total batches to send:", aiChunks.length);
 
     const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const allSummarizedItems = [];
     let batchIndex = 1;
 
     for (const chunk of aiChunks) {
       console.log(`🚀 Processing batch ${batchIndex}/${aiChunks.length}`);
-      const prompt = `You are a news summarization assistant. For each news item, create 4 DIFFERENT versions of both title AND description.
+      const prompt = `
+You are a summarization assistant for a news app. Given a list of news items (with id, title, and description), return a JSON array where each item contains the same id, and the title and description in 4 tones:
 
-CRITICAL: Each field MUST be unique - do NOT copy same text to all 4 fields!
+- "original": unchanged
+- "hindi": in Hindi 
+- "friendly": light and casual
+- "hinglish": "Use casual Hinglish — a natural mix of Hindi and English as spoken in daily Indian conversations. Write mostly in English but blend in simple Hindi words or phrases where it feels natural. DO NOT translate entire sentences into Hindi. Example: English: 'India’s cricket team won the series after a tough final match.' → Hinglish: 'India’s cricket team ne finally series jeet li — that last match was too intense!'"
 
-1. "original" = Keep exact original English text unchanged
-2. "hindi" = Fully translate to Hindi (देवनागरी script only, not English)
-3. "friendly" = Rewrite in casual conversational English tone
-4. "hinglish" = Natural mix - mostly English with Hindi words (जैसे "India ne match jeet liya yaar!")
-
-EXAMPLE OF CORRECT FORMAT:
-{
-  "id": "123",
-  "title": {
-    "original": "India wins cricket match against Australia",
-    "hindi": "भारत ने ऑस्ट्रेलिया के खिलाफ क्रिकेट मैच जीता",
-    "friendly": "India totally crushed Australia in cricket!",
-    "hinglish": "India ne Australia ko cricket mein hara diya - kya game tha!"
-  },
-  "description": {
-    "original": "India defeated Australia by 50 runs in the finals",
-    "hindi": "भारत ने फाइनल में ऑस्ट्रेलिया को 50 रनों से हराया",
-    "friendly": "Team India absolutely dominated the finals, winning by a solid 50 runs against Australia!",
-    "hinglish": "India ne finals mein Australia ko 50 runs se haraya - team ne kamaal kar diya!"
-  }
-}
-
-Keep descriptions around 60 words. If description is short, expand with context.
-
-Return ONLY valid JSON array. No markdown, no explanations.
-
-Input:
+  Summarize in  about 60 words. If the original description text is too short, elaborate it slightly using real-world context or background information, but do not alter or invent facts. 
+  ⚠️ IMPORTANT: Always return only valid JSON. No explanation or extra text.
+  if you don't get description, then form short one by refering the title.
+Here is the input:
 ${JSON.stringify(chunk, null, 2)}
 
 Format:
@@ -384,7 +365,22 @@ Format:
               title: summary.title,
               description: summary.description,
             }
-          : article; // fallback to original if not summarized
+          : {
+              ...article,
+              // Convert string title/description to ToneSchema format for unsummarized articles
+              title: {
+                original: article.title || "",
+                friendly: article.title || "",
+                hinglish: article.title || "",
+                hindi: article.title || "",
+              },
+              description: {
+                original: article.description || "",
+                friendly: article.description || "",
+                hinglish: article.description || "",
+                hindi: article.description || "",
+              },
+            };
       });
     }
 
@@ -430,8 +426,6 @@ if (!existingDoc) {
     if (res) {
       res.status(200).json({ feedsMap: finalFeedsMap });
     }
-
-    console.log(finalFeedsMap)
     
     return finalFeedsMap; // Return for cron/startup usage
   } catch (error) {

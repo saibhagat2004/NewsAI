@@ -32,10 +32,10 @@ app.use("/api/user", userRoutes);
 
 
 
-// Uptime monitoring endpoint to keep the server alive (used by bots like UptimeRobot)
-app.get('/api/ping', (req, res) => {
-  res.status(200).send('pong');
-});
+// // Uptime monitoring endpoint to keep the server alive (used by bots like UptimeRobot)
+// app.get('/api/ping', (req, res) => {
+//   res.status(200).send('pong');
+// });
 
 
 cron.schedule("0 0 * * *", () => {
@@ -62,7 +62,20 @@ if (process.env.NODE_ENV === "production") {
 }
 
 
-app.listen(PORT, () => {
+app.listen(PORT,async () => {
   console.log(`Server is running on port ${PORT}`);
   connectMongoDB();
+
+
+  // Run summarization immediately on startup
+  console.log("🔥 Triggering initial feed summarization...");
+  try {
+    await buildSummarization();
+    console.log("✅ Initial summarization complete!");
+
+  //     console.log("✅ Clenning up At: ", new Date().toLocaleTimeString());
+  // cleanupOldFeeds();
+  } catch (error) {
+    console.error("❌ Initial summarization failed:", error.message);
+  }
 });
