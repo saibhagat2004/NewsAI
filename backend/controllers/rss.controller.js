@@ -118,7 +118,7 @@ function chunkArray(array, size) {
 }
 
 // ============================================
-// MAIN FLOW: STEP 1 - FETCH FRESH FEEDS
+// STEP 1 - FETCH FRESH FEEDS
 // ============================================
 
 export async function fetchFeedsMap() {
@@ -178,7 +178,7 @@ export async function fetchFeedsMap() {
 }
 
 // ============================================
-// MAIN FLOW: STEP 2 - PREPARE AI INPUT
+// STEP 2 - PREPARE AI INPUT
 // ============================================
 
 // Prepare AI input from feedsMap
@@ -199,7 +199,7 @@ function buildSummarizationInput(feedsMap) {
 }
 
 // ============================================
-// MAIN FLOW: STEP 3 - AI SUMMARIZATION & SAVE
+// STEP 3 - AI SUMMARIZATION & SAVE
 // ============================================
 
 export async function buildSummarization(req, res) {
@@ -394,7 +394,7 @@ if (!existingDoc) {
 }
 
 // ============================================
-// MAIN FLOW: STEP 4 - RETRIEVE FROM DATABASE
+// STEP 4 - RETRIEVE FROM DATABASE
 // ============================================
 
 export async function extractAllNewsAsFeedMap(tone = "original") {
@@ -426,7 +426,7 @@ export async function extractAllNewsAsFeedMap(tone = "original") {
 }
 
 // ============================================
-// MAIN FLOW: STEP 5 - SERVE TO USERS
+// STEP 5 - SERVE TO USERS
 // ============================================
 
 export async function fetchAndMergeFeeds(req, res) {
